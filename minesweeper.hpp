@@ -13,16 +13,19 @@ enum MoveResult { INVALID_MOVE=-3, REDUNDANT_MOVE=-2, BLOWN_UP=-1, SOLVED_BOARD=
 class Minesweeper
 {
 public:
-    void SetBoard();
-    void LoadBoard();
-    vector<string> SetInitialBoard(vector<string> map);
-    // bool CheckCoordinate(string coordinate, vector<string> dangerCoords);
-    bool isComplete(vector<string> map);
+    void setBoard();
+    void loadBoard();
+    vector<string> setInitialBoard(vector<string> map, char selection);
+    int getNumber(char input);
+    void givePositions(string position, int &row, int &col);
+    
+    bool checkInput(string input);
+    bool isComplete(vector<string> map, vector<string> mines);
     int countMines(string position, vector<string> dangerMap);
-    MoveResult make_move(std::string position, vector<string> mines, vector<string> &revealed);
-    char Printchar(int row);
-    void PrintBoard(vector<string> map);
-    void UncoverBlock(vector<string> &map, string coordinate, vector<string> dangerCoords);
+    MoveResult makeMove(std::string position, vector<string> mines, vector<string> &revealed);
+    char printChar(int row);
+    void printBoard(vector<string> map);
+    void uncoverBlock(vector<string> &map, string coordinate, vector<string> dangerCoords);
 
 private:
 

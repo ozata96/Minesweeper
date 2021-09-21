@@ -23,7 +23,46 @@ using namespace std;
    I|??????????????????|
     +------------------+
 */
-int getNumber(char input)
+
+bool Minesweeper::checkInput(string input)
+{
+    string rowLibrary = "ABCDEFGHI";
+    string colLibrary = "ABCDEFGHIJKLMNOPQR";
+
+    if (input.length() > 3 && input != "MAIN")
+    {
+        cerr << "Invalid input, please try again" << endl;
+        return false;
+    }
+
+    if (input.length() == 3 && input[2] != '*')
+    {
+        cerr << "Invalid input, please try again" << endl;
+        return false;
+    }
+
+    if (input.length() < 4)
+    {
+        for (int i = 0; i < rowLibrary.length(); i++)
+        {
+            if (input[0] == rowLibrary[i])
+                for (int j = 0; j < colLibrary.length(); j++)
+                {
+                    if (input[1] == colLibrary[j])
+                        if (input.length() == 2)
+                            return true;
+                        if (input.length() == 3 && input[2] == '*')
+                            return true;
+                }
+        }
+
+    }
+    cerr << "Invalid input" << endl;
+    return false;
+}
+
+
+int Minesweeper::getNumber(char input)
 {
     switch (input)
     {
@@ -68,15 +107,10 @@ int getNumber(char input)
     }
 }
 
-void givePositions(string position, int &row, int &col)
+void Minesweeper::givePositions(string position, int &row, int &col)
 {
     row = getNumber(position[0]);
     col = getNumber(position[1]);
-}
-
-void Minesweeper::UncoverBlock(vector<string> &map, string coordinate, vector<string> dangerCoords)
-{
-    map[static_cast<int>(coordinate[0] - 48)][static_cast<int>(coordinate[1] - 48)] = '!';
 }
 
 int Minesweeper::countMines(string position, vector<string> dangerMap)
@@ -88,29 +122,20 @@ int Minesweeper::countMines(string position, vector<string> dangerMap)
     int rowStart = row - 3;
     int colStart = col - 3;
 
-    cout << rowStart << endl;
-    cout << colStart << endl;
+    // cout << rowStart << endl;
+    // cout << colStart << endl;
     
     for (int i = rowStart; i < (rowStart + 3); i++){
         for (int j = colStart; j < (colStart + 3); j++){
             if (dangerMap[i][j] == '*')
-                mineCount++;
+                if (i >= 0 && j >= 0)
+                    mineCount++;
         }
     }
     return mineCount;
 }
 
-bool Minesweeper::isComplete(vector<string> map)
-{
-    for (int i = 0; i < map.size(); i++)
-        for (int j = 0; j < map[0].size(); j++)
-            if (map[i][j] != '*')
-                if (map[i][j] == '?')
-                    return false;
-    return false;
-}
-
-char Minesweeper::Printchar(int row)
+char Minesweeper::printChar(int row)
 {
     char output;
 
@@ -139,10 +164,20 @@ char Minesweeper::Printchar(int row)
     }
 }
 
-vector<string> Minesweeper::SetInitialBoard(vector<string> map)
+vector<string> Minesweeper::setInitialBoard(vector<string> map, char selection)
 {
+    string line = "";
     vector<string> board;
-    string line = "  ABCDEFGHIJKLMNOPQR ";
+    if (selection == '0')
+        line = "  ABCDEFGHIJ ";
+
+    else if (selection == '1')
+        line = "  ABCDEFGHIJKLM ";
+
+    else if (selection == '2')
+        line = "  ABCDEFGHIJKLMNOPQR ";
+
+
     board.push_back(line);
     line = "";
 
@@ -167,7 +202,7 @@ vector<string> Minesweeper::SetInitialBoard(vector<string> map)
         {
             if (col == 0)
             {
-                line.push_back(Printchar(row));
+                line.push_back(printChar(row));
                 line.push_back('|');
             }
             if (col == map[0].size())
@@ -193,7 +228,7 @@ vector<string> Minesweeper::SetInitialBoard(vector<string> map)
     return board;
 };
 
-void Minesweeper::PrintBoard(vector<string> board)
+void Minesweeper::printBoard(vector<string> board)
 {
     for (int i = 0; i < board.size(); i++)
     {
@@ -205,7 +240,21 @@ void Minesweeper::PrintBoard(vector<string> board)
     }
 }
 
-MoveResult Minesweeper::make_move(std::string position, vector<string> mines, vector<string> &revealed)
+bool Minesweeper::isComplete(vector<string> map, vector<string> mines)
+{
+    for (int row = 0; row < mines[0].length(); row++)
+        for (int col = 0; col < mines.size(); col++)
+        {
+            if (map[row + 2][col + 2] == '?')
+                return false;
+            if (map[row + 2][col + 2] == '*' && mines[row][col] != '*')
+                return false;
+            // if (mines[row - 2][col - 2] == '*')
+        }
+return true;
+}
+
+MoveResult Minesweeper::makeMove(std::string position, vector<string> mines, vector<string> &revealed)
 {
     // Setup
     int row = 0;
@@ -223,9 +272,6 @@ MoveResult Minesweeper::make_move(std::string position, vector<string> mines, ve
     if (revealed[row][col] != '?')
         return REDUNDANT_MOVE;
 
-    if (mines[row - 2][col - 2] == '*')
-        return BLOWN_UP;
-
     // if the move is valid and we want to flag
     if (position.length() == 3)
     { // move here is to flag not reveal
@@ -235,8 +281,13 @@ MoveResult Minesweeper::make_move(std::string position, vector<string> mines, ve
         return VALID_MOVE;
     }
 
+    if (mines[row - 2][col - 2] == '*')
+        return BLOWN_UP;
+
     // if the move is valid and we want to reveal
     int num_of_mines = countMines(position, mines);
+
+    isComplete(revealed, mines);
 
     if (num_of_mines != 0)
     {
@@ -253,49 +304,49 @@ MoveResult Minesweeper::make_move(std::string position, vector<string> mines, ve
     //CHECK TL:
     tempPosition[0] = tempPosition[0] - 1;
     tempPosition[1] = tempPosition[1] - 1;
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK TT:
     tempPosition = position;
     tempPosition[0] = tempPosition[0] - 1;
     tempPosition[1] = tempPosition[1];
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK TR:
     tempPosition = position;
     tempPosition[0] = tempPosition[0] - 1;
     tempPosition[1] = tempPosition[1] + 1;
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK BL:
     tempPosition = position;
     tempPosition[0] = tempPosition[0] + 1;
     tempPosition[1] = tempPosition[1] - 1;
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK BB:
     tempPosition = position;
     tempPosition[0] = tempPosition[0] + 1;
     tempPosition[1] = tempPosition[1];
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK BR:
     tempPosition = position;
     tempPosition[0] = tempPosition[0] + 1;
     tempPosition[1] = tempPosition[1] + 1;
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK RR:
     tempPosition = position;
     tempPosition[0] = tempPosition[0];
     tempPosition[1] = tempPosition[1] + 1;
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     //CHECK LL:
     tempPosition = position;
     tempPosition[0] = tempPosition[0];
     tempPosition[1] = tempPosition[1] - 1;
-    make_move(tempPosition, mines, revealed);
+    makeMove(tempPosition, mines, revealed);
     //---------------------------------------//
     return VALID_MOVE;
 
