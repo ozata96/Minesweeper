@@ -12,8 +12,8 @@ using namespace std;
 
 int main ()
 {
-        string coordinate = "";
-
+    string coordinate = "";
+    int mineCount;
     Minesweeper control;
     string coord = "";
     char x, y;
@@ -29,13 +29,16 @@ int main ()
     }
 
     vector<string> dangerCoords;
+    cout << dangerMap[0].size() << endl;
+    cout << dangerMap.size() << endl;
 
-    for (int i = 0; i < dangerMap[0].size(); i++)
+    for (int i = 0; i < dangerMap.size(); i++)
     {
-        for (int j = 0; j < dangerMap.size(); j++)
+        for (int j = 0; j < dangerMap[0].size(); j++)
         {
             if (dangerMap[i][j] == '*')
             {
+                mineCount++;
                 x = static_cast<char>(i) + 48;
                 y = static_cast<char>(j) + 48;
 
@@ -51,15 +54,21 @@ int main ()
 
     newMap = control.SetInitialBoard(dangerMap);
     control.PrintBoard(newMap);
-    // for (int i = 0; i < dangerCoords.size(); i++)
-    // {
-    //     cout << dangerCoords[i] << endl;
-    // }
 
-    cin >> coordinate;
+    cout << mineCount << endl;
+    // cin >> coordinate;
 
-    control.CheckCoordinate(coordinate, dangerCoords);
+    // control.CheckCoordinate(coordinate, dangerCoords);
 
     control.UncoverBlock(newMap, coordinate, dangerCoords);
     control.PrintBoard(newMap);
+
+    string position = "";
+    while (position != "Exit")
+    {
+        cin >> position;
+        control.make_move(position, dangerMap, newMap);
+        control.PrintBoard(newMap);
+        cout << position.length() << endl;
+    }
 }

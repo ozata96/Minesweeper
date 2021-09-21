@@ -16,7 +16,11 @@ public:
     void SetBoard();
     void LoadBoard();
     vector<string> SetInitialBoard(vector<string> map);
-    bool CheckCoordinate(string coordinate, vector<string> dangerCoords);
+    // bool CheckCoordinate(string coordinate, vector<string> dangerCoords);
+    bool isComplete(vector<string> map);
+    int countMines(string position, vector<string> dangerMap);
+    MoveResult make_move(std::string position, vector<string> mines, vector<string> &revealed);
+    char Printchar(int row);
     void PrintBoard(vector<string> map);
     void UncoverBlock(vector<string> &map, string coordinate, vector<string> dangerCoords);
 
